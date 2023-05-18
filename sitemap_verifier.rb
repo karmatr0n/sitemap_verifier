@@ -46,7 +46,7 @@ class SiteMapper
     http = http_request(@uri)
     response = http.request(http_get_request(@uri.path))
     response.code == '200' ? urls_from_xml(response.body) : []
-  rescue Net::OpenTimeout, OpenSSL::SSL::SSLError => e
+  rescue Net::OpenTimeout, OpenSSL::SSL::SSLError => _e
     (retries += 1) <= 2 ? retry : []
   end
 
@@ -74,7 +74,7 @@ class URLChecker
     @end_time = Time.now
     @url_verified = true
     @status_code = response.code
-  rescue Net::OpenTimeout, OpenSSL::SSL::SSLError => e
+  rescue Net::OpenTimeout, OpenSSL::SSL::SSLError => _e
     retry if (retries += 1) <= 2
   end
 
@@ -91,7 +91,7 @@ class URLChecker
 end
 
 class SitemapVerifier
-  attr_reader :stats, :debug, :max_async_requests, :output_filename
+  attr_reader :stats, :debug, :max_async_requests
 
   def initialize(sitemap_url, debug: false, max_async_requests: 30)
     @site_mapper = SiteMapper.new(sitemap_url)
@@ -103,7 +103,8 @@ class SitemapVerifier
 
   def verify_urls
     all_urls = map_urls
-    max_requests = all_urls.size < max_async_requests ? all_urls.size : max_async_requests
+    all_urls_size = all_urls.size
+    max_requests = all_urls_size.positive? && all_urls_size < max_async_requests ? all_urls_size : max_async_requests
     all_urls.each_cons(max_requests).each do |urls|
       async_scan_urls(urls)
     end
@@ -141,7 +142,7 @@ class SitemapVerifier
   end
 end
 
-if ARGV.length == 1 && $0 == __FILE__
+if ARGV.length == 1 && $PROGRAM_NAME == __FILE__
   sitemap_verifier = SitemapVerifier.new(ARGV.shift, debug: true)
   sitemap_verifier.verify_urls
   sitemap_verifier.save_json
