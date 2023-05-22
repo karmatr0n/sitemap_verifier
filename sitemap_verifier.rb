@@ -91,7 +91,7 @@ class URLChecker
 end
 
 class SitemapVerifier
-  attr_reader :stats, :debug, :max_async_requests
+  attr_reader :stats, :debug, :max_async_requests, :all_urls
 
   def initialize(sitemap_url, debug: false, max_async_requests: 30)
     @site_mapper = SiteMapper.new(sitemap_url)
@@ -102,11 +102,13 @@ class SitemapVerifier
   end
 
   def verify_urls
-    all_urls = map_urls
-    all_urls_size = all_urls.size
-    max_requests = all_urls_size.positive? && all_urls_size < max_async_requests ? all_urls_size : max_async_requests
-    all_urls.each_cons(max_requests).each do |urls|
-      async_scan_urls(urls)
+    @all_urls = map_urls
+    all_urls.size < max_async_requests ? async_scan_urls(all_urls) : verify_urls_in_batches
+  end
+
+  def verify_urls_in_batches
+    @all_urls.each_cons(max_async_requests).each do |url_batch|
+      async_scan_urls(url_batch)
     end
   end
 

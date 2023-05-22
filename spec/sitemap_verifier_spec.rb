@@ -174,9 +174,9 @@ end
 
 describe SitemapVerifier do
   let(:example_url) { 'https://example.com/sitemap_site.xml' }
-  let(:map_url) { 'https://example.com/pages_map.xml' }
+  let(:mapped_url) { 'https://example.com/pages_map.xml' }
   let(:url1) { 'https://example.com/page1' }
-  let(:site_mapper1) { instance_double(SiteMapper, map_urls: [map_url], uri: URI.parse(example_url)) }
+  let(:site_mapper1) { instance_double(SiteMapper, map_urls: [mapped_url], uri: URI.parse(example_url)) }
   let(:site_mapper2) { instance_double(SiteMapper, map_urls: [url1]) }
   let(:url_checker) { instance_double(URLChecker, verify_status: true, stats: { url: url1, url_verified: true}) }
 
@@ -184,7 +184,7 @@ describe SitemapVerifier do
 
   before do
     allow(SiteMapper).to receive(:new).with(example_url).and_return(site_mapper1)
-    allow(SiteMapper).to receive(:new).with(map_url).and_return(site_mapper2)
+    allow(SiteMapper).to receive(:new).with(mapped_url).and_return(site_mapper2)
     allow(URLChecker).to receive(:new).with(url1).and_return(url_checker)
   end
 
