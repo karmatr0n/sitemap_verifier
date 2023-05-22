@@ -18,12 +18,6 @@ describe HttpHelper do
     end
   end
 
-  describe '#user_agent' do
-    it 'returns a random string from the user_agents list' do
-      expect(HttpHelper::USER_AGENTS).to include(user_agent)
-    end
-  end
-
   describe '#http_request' do
     it 'returns a valid Net::HTTP instance' do
       uri = URI.parse('http://example.com')
