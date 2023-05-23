@@ -89,7 +89,7 @@ describe SiteMapper do
       expect(site_mapper.map_urls).to eq(['https://example.com/post-sitemap.xml', 'https://example.com.m/page-sitemap.xml'])
     end
 
-    it 'returns an array of urls when the response is not sucecss' do
+    it 'returns an array of urls when the response is not success' do
       response = instance_double(Net::HTTPResponse, code: '500')
       allow(http_request).to receive(:request).with(http_get).and_return(response)
       expect(site_mapper.map_urls).to be_empty
@@ -109,6 +109,11 @@ describe SiteMapper do
 
     it 'returns an empty array of urls when the loc elements do not exist' do
       urls = site_mapper.urls_from_xml(doc_xml_without_loc_elements)
+      expect(urls).to be_empty
+    end
+
+    it 'returns an empty array of urls when xml document is not valid' do
+      urls = site_mapper.urls_from_xml('invalid xml')
       expect(urls).to be_empty
     end
   end

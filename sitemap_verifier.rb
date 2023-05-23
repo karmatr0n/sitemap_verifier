@@ -24,7 +24,12 @@ module HttpHelper
   def http_request(uri)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == 'https'
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE if http.use_ssl?
+    http.open_timeout = 2
+    http.read_timeout = 2
+    if http.use_ssl?
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      http.ssl_timeout = 2
+    end
     http
   end
 end
@@ -42,13 +47,15 @@ class SiteMapper
     http = http_request(@uri)
     response = http.request(http_get_request(@uri.path))
     response.code == '200' ? urls_from_xml(response.body) : []
-  rescue Net::OpenTimeout, OpenSSL::SSL::SSLError => _e
+  rescue Net::OpenTimeout, Net::ReadTimeout, OpenSSL::SSL::SSLError => _exception
     (retries += 1) <= 2 ? retry : []
   end
 
   def urls_from_xml(xml)
     doc = Nokogiri::XML(xml)
     doc.xpath('//xmlns:loc').map(&:text)
+  rescue Nokogiri::XML::XPath::SyntaxError => _exception
+    []
   end
 end
 
@@ -70,7 +77,7 @@ class URLChecker
     @end_time = Time.now
     @url_verified = true
     @status_code = response.code
-  rescue Net::OpenTimeout, OpenSSL::SSL::SSLError => _e
+  rescue Net::OpenTimeout, Net::ReadTimeout, OpenSSL::SSL::SSLError => _exception
     retry if (retries += 1) <= 2
   end
 
