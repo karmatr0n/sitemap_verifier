@@ -24,11 +24,11 @@ module HttpHelper
   def http_request(uri)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == 'https'
-    http.open_timeout = 2
-    http.read_timeout = 2
+    http.open_timeout = 10
+    http.read_timeout = 10
     if http.use_ssl?
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      http.ssl_timeout = 2
+      http.ssl_timeout = 10
     end
     http
   end
